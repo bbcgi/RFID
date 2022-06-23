@@ -1,0 +1,314 @@
+C51 COMPILER V7.00  SECUREDSTATE                                                           03/03/2007 21:12:43 PAGE 1   
+
+
+C51 COMPILER V7.00, COMPILATION OF MODULE SECUREDSTATE
+OBJECT MODULE PLACED IN SecuredState.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE SecuredState.c LARGE BROWSE OMF251 DEBUG
+
+stmt level    source
+
+   1          #include "EPC_STATE.h"
+   2          
+   3          void SecuredStateFunction(){
+   4   1      
+   5   1              bit securedSateKillFirstDone=0; 
+   6   1              unsigned short FirstKillPwd=0x0000;
+   7   1              byte * data_pointer=0x00;
+   8   1              byte * temp=0x00;
+   9   1              unsigned char tempChar;
+  10   1              unsigned char i;
+  11   1              unsigned short *word_pointer=0x00;
+  12   1      
+  13   1              YLED=LED_ON;
+  14   1              BLED=LED_ON;
+  15   1              halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA); //打開RX
+  16   1      
+  17   1              while(1){
+  18   2                      //接收資料
+  19   2                      ReciveByte = halRFReceivePacket(10,&buffer,64,0,CC1010EB_CLKFREQ) ;
+  20   2                      if(ReciveByte==0)continue;
+  21   2                      
+  22   2                      
+  23   2                      command = buffer[0] ;
+  24   2                      //分辨指令
+  25   2                      switch(command){
+  26   3                              case SINGLE_SELECT_HEADER:
+  27   3                                      AnswerToSingleSelect((MySelect*)&buffer);
+  28   3                                      return;
+  29   3                              case SELECT_HEADER :
+  30   3                                      AnswerToSelect((MySelect*)&buffer);
+  31   3                                      return;
+  32   3                              case QUERY_HEADER  :
+  33   3                                      AnswerToQuery((MyQuery*)&buffer) ;
+  34   3                                      return;
+  35   3                              case QUERY_ADJUST_HEADER :
+  36   3                              case QUERY_REP_HEADER :
+  37   3                                      state=ReadyState;
+  38   3                                      return ;                
+  39   3                              case ACK_HEADER:
+  40   3                                      /*判斷Reader送回的ACK中RN16是否和Handler相同*/
+  41   3                                      Ack=(MyACK*)buffer;
+  42   3                                      if(Ack->RN_ACK==Handler)/*若相同則TAG反應PC,EPC,CRC-16*/
+  43   3                                      {
+  44   4                                              halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+  45   4                                              halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&EpcMB,12);
+  46   4                                              halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA); 
+  47   4                                              continue;
+  48   4                                      }
+  49   3                                      else
+  50   3                                      {
+  51   4                                              state=ArbitrateState;
+  52   4                                              return ;
+  53   4                                      }       
+  54   3                                      break;  
+  55   3                              case REQ_RN_HEADER :
+C51 COMPILER V7.00  SECUREDSTATE                                                           03/03/2007 21:12:43 PAGE 2   
+
+  56   3                                      Ack=(MyACK*)buffer;
+  57   3                                      if(Ack->RN_ACK==Handler)
+  58   3                                      {
+  59   4                                              halRandomNumberGen((byte*)&RN_16 , 2);
+  60   4                                              halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+  61   4                                              halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&RN_16,2);
+  62   4                                              halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA); //打開RX
+  63   4                                              continue;
+  64   4                                              //mainFunctionPointer= &OpenStateFunction;
+  65   4                                              //return ;
+  66   4                                      }
+  67   3                                      else 
+  68   3                                      {
+  69   4                                              continue;
+  70   4                                              //mainFunctionPointer= &OpenStateFunction;
+  71   4                                              //return ;
+  72   4                                      }
+  73   3                                      break;
+  74   3                              case READ_HEADER :
+  75   3                                      ReadCommand=(MyRead*)buffer;
+  76   3                                      if(ReadCommand->RN_Read==Handler)//&& check /*valid memory access*/
+  77   3                                      {
+  78   4                                              //BackScatter Data :Not finished
+  79   4                                              halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+  80   4                                              switch(ReadCommand->MenBank_Read){
+  81   5                                                      case RESERVED_MEM_BANK :
+  82   5                                                              data_pointer=(byte*)&ReceivedMB;
+  83   5                                                              break;
+  84   5                                                      case EPC_MEM_BANK :
+  85   5                                                              data_pointer=(byte*)&EpcMB;
+  86   5                                                              break;
+  87   5                                                      case TID_MEM_BANK:
+  88   5                                                              data_pointer=(byte*)&TidMB;
+  89   5                                                              break;
+  90   5                                                      case USER_MEM_BANK:
+  91   5                                                              data_pointer=(byte*)&UserMB;
+  92   5                                                              break;
+  93   5                                              }
+  94   4                                              temp=buffer;
+  95   4                                              *temp=0;
+  96   4                                              temp++;
+  97   4                                              tempChar=ReadCommand->WordCount*2;
+  98   4                                              for(i=0;i<tempChar;i++){
+  99   5                                                      *temp=*data_pointer;
+ 100   5                                                      temp++;
+ 101   5                                                      data_pointer++;
+ 102   5                                              }
+ 103   4                                              *temp=(Handler)>>8;
+ 104   4                                              temp++;
+ 105   4                                              *temp=((Handler)&0xff);
+ 106   4      
+ 107   4                                              halRFSendPacket(PREAMBLE_BYTE_COUNT,buffer,tempChar+3);
+ 108   4                                              halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA); //打開RX
+ 109   4                                              data_pointer=0x00;
+ 110   4                                      }
+ 111   3                                      break;
+ 112   3                              case WRITE_HEADER :
+ 113   3                                      WriteCommand=(MyWrite*)buffer;
+ 114   3                                      if(WriteCommand->RN_Write==Handler)// check && /*valid memory access*/
+ 115   3                                      {
+ 116   4                                              
+ 117   4                                              halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+C51 COMPILER V7.00  SECUREDSTATE                                                           03/03/2007 21:12:43 PAGE 3   
+
+ 118   4                                              switch(WriteCommand->ManBank_Write){
+ 119   5                                                      case RESERVED_MEM_BANK :
+ 120   5                                                              word_pointer=(unsigned short*)&ReceivedMB;
+ 121   5                                                              break;
+ 122   5                                                      case EPC_MEM_BANK :
+ 123   5                                                              word_pointer=(unsigned short*)&EpcMB;
+ 124   5                                                              break;
+ 125   5                                                      case TID_MEM_BANK:
+ 126   5                                                              word_pointer=(unsigned short*)&TidMB;
+ 127   5                                                              break;
+ 128   5                                                      case USER_MEM_BANK:
+ 129   5                                                              word_pointer=(unsigned short*)&UserMB;
+ 130   5                                                              break;
+ 131   5                                              }
+ 132   4                                              word_pointer+=(WriteCommand->WordPtr_Write);
+ 133   4                                              *word_pointer=(WriteCommand->Data_Write);
+ 134   4                                              word_pointer=0x00;
+ 135   4      
+ 136   4                                              Write_Response.Header=0x00;
+ 137   4                                              Write_Response.RN=Handler;
+ 138   4                                              halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&Write_Response,3);
+ 139   4                                              halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA); //打開RX
+ 140   4                                              //WriteTagData2Flash();
+ 141   4                                              continue;
+ 142   4                                              //mainFunctionPointer= &OpenStateFunction;
+ 143   4                                              //return  ;
+ 144   4                                      }
+ 145   3                                      //else if(WriteCommand->RN_Write==Handler)// check && /*Invalid memory access*/
+ 146   3                                      //{
+ 147   3                                      //      MyTagErrorCode* TagErrorCodeCommand = (MyTagErrorCode*)buffer;
+ 148   3                                              //halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 149   3                                              //halRFSendPacket(PREAMBLE_BYTE_COUNT,TagErrorCodeCommand->ErrorCode,1);
+ 150   3                                      //      continue;
+ 151   3                                              //mainFunctionPointer= &OpenStateFunction;
+ 152   3                                              //return ;
+ 153   3                                      //}
+ 154   3                                      //else
+ 155   3                                      //{
+ 156   3                                      //      continue;
+ 157   3                                              //mainFunctionPointer= &OpenStateFunction;
+ 158   3                                              //return ;
+ 159   3                                      //}     
+ 160   3                                      break;
+ 161   3                              case KILL_HEADER:
+ 162   3                                      KillCommand = (MyKill*)buffer;
+ 163   3                                      if(KillCommand->RN_Kill==Handler)
+ 164   3                                      {
+ 165   4                                              if(securedSateKillFirstDone){
+ 166   5                                                      securedSateKillFirstDone=0;
+ 167   5                                                      if(KillCommand->pwd_Kill == ReceivedMB.KillPwdB && FirstKillPwd==ReceivedMB.KillPwdA){
+ 168   6                                                              state=KilledState;
+ 169   6                                                              halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 170   6                                                              halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&Handler,2);
+ 171   6                                                              halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA); //打開RX
+ 172   6                                                              return ; 
+ 173   6                                                      }else if(KillCommand->pwd_Kill==0){
+ 174   6                                                              /* Backscatter Error Code*/
+ 175   6                                                              TagErrorCode.Header=0x01;
+ 176   6                                                              TagErrorCode.ErrorCode=0x00;
+ 177   6                                                              TagErrorCode.RN_TagErrorCode=Handler;
+ 178   6                                                              
+ 179   6                                                              halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+C51 COMPILER V7.00  SECUREDSTATE                                                           03/03/2007 21:12:43 PAGE 4   
+
+ 180   6                                                              halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&TagErrorCode,6);
+ 181   6                                                              halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA);
+ 182   6                                                              state=OpenState;
+ 183   6                                                              return ; 
+ 184   6                                                      }else{
+ 185   6                                                              state=ArbitrateState;
+ 186   6                                                      }
+ 187   5                                              }else{
+ 188   5                                                      securedSateKillFirstDone =1;
+ 189   5                                                      FirstKillPwd=KillCommand->pwd_Kill;
+ 190   5                                                      halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 191   5                                                      halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&Handler,2);
+ 192   5                                                      halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA);
+ 193   5                                                      continue;
+ 194   5                                              }
+ 195   4                                      }else{
+ 196   4                                              continue;
+ 197   4                                              //mainFunctionPointer= &OpenStateFunction;
+ 198   4                                              //return ; 
+ 199   4                                      }
+ 200   3                                      break;
+ 201   3                              case LOCK_HEADER :
+ 202   3                                      state=OpenState;
+ 203   3                                      return ; 
+ 204   3                              case ACCESS_HEADER :
+ 205   3                                      AccessCommand = (MyAccess*)buffer;
+ 206   3                                      if(AccessCommand->RN_Access==Handler &&  AccessCommand->pwd_Access==0xACEE)
+ 207   3                                      {
+ 208   4                                              halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 209   4                                              halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&RN_16,2);
+ 210   4                                              halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA); //打開RX
+ 211   4                                              state=SecuredState;
+ 212   4                                              return ; 
+ 213   4                                      }
+ 214   3                                      else if(AccessCommand->RN_Access==Handler &&  AccessCommand->pwd_Access!=0xACEE)
+ 215   3                                      {
+ 216   4                                              state=ArbitrateState;
+ 217   4                                              return ; 
+ 218   4                                      }
+ 219   3                                      else
+ 220   3                                      {
+ 221   4                                              continue;
+ 222   4                                              //mainFunctionPointer= &OpenStateFunction;
+ 223   4                                              //return ; 
+ 224   4                                      }
+ 225   3                                      break;
+ 226   3                              case BLOCK_WRITE_HEADER :
+ 227   3                                      BlockWriteCommand=(MyBlockWrite*)buffer ;
+ 228   3                                      if(BlockWriteCommand->RN_BlockWrite==Handler)//check &&/*valid*/ 
+ 229   3                                      {
+ 230   4                                              //halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 231   4                                              //halRFSendPacket(PREAMBLE_BYTE_COUNT,BlockWriteCommand->RN_16,2);
+ 232   4                                              continue;
+ 233   4                                              //mainFunctionPointer= &OpenStateFunction;
+ 234   4                                              //return ; 
+ 235   4                                      }
+ 236   3                                      else if(BlockWriteCommand->RN_BlockWrite==Handler)//check &&/*Invalid*/
+ 237   3                                      {  
+ 238   4                                              //not finished 
+ 239   4                                              continue;
+ 240   4                                              //mainFunctionPointer= &OpenStateFunction;
+ 241   4                                              //return ; 
+C51 COMPILER V7.00  SECUREDSTATE                                                           03/03/2007 21:12:43 PAGE 5   
+
+ 242   4                                      }
+ 243   3                                      else
+ 244   3                                      {
+ 245   4                                              continue;
+ 246   4                                              //mainFunctionPointer= &OpenStateFunction;
+ 247   4                                              //return ;  
+ 248   4                                      }
+ 249   3                                      break;
+ 250   3                              case BLOCK_ERASE_HEADER:
+ 251   3                                      BlockEraseCommand=(MyBlockErase*)buffer ;
+ 252   3                                      if(BlockEraseCommand->RN_BlockErase==Handler)//check &&/*valid*/ 
+ 253   3                                      {
+ 254   4                                              //halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 255   4                                              //halRFSendPacket(PREAMBLE_BYTE_COUNT,BlockEraseCommand->RN_16,2);
+ 256   4                                              continue;
+ 257   4                                              //mainFunctionPointer= &OpenStateFunction;
+ 258   4                                              //return ; 
+ 259   4                                      }
+ 260   3                                      else if(BlockWriteCommand->RN_BlockWrite==Handler)//check &&/*Invalid*/
+ 261   3                                      {  
+ 262   4                                              //not finished 
+ 263   4                                              continue;
+ 264   4                                              //mainFunctionPointer= &OpenStateFunction;
+ 265   4                                              //return ; 
+ 266   4                                      }
+ 267   3                                      else
+ 268   3                                      {
+ 269   4                                              continue;
+ 270   4                                              //mainFunctionPointer= &OpenStateFunction;
+ 271   4                                              //return ;  
+ 272   4                                      }
+ 273   3                                      break;
+ 274   3                              default:
+ 275   3                                      state=ArbitrateState;
+ 276   3                                      return ; 
+ 277   3                      }
+ 278   2              }
+ 279   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1568    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----      12
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       1
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

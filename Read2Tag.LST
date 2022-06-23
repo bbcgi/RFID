@@ -1,0 +1,315 @@
+C51 COMPILER V7.00  READ2TAG                                                               08/26/2006 19:48:13 PAGE 1   
+
+
+C51 COMPILER V7.00, COMPILATION OF MODULE READ2TAG
+OBJECT MODULE PLACED IN Read2Tag.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE Read2Tag.c LARGE BROWSE OMF251 DEBUG
+
+stmt level    source
+
+   1          #include <chipcon/hal.h>
+   2          #include <chipcon/cul.h>
+   3          #include <chipcon/reg1010.h>
+   4          #include <chipcon/cc1010eb_modify_led.h>
+   5          #include "EPC_COMMAND.h"
+   6          #include "epc_util_command_set.h"
+   7          
+   8          xdata unsigned short tag_change_data[6];
+   9          //#define SET_TARGET(t,x) (t->target=x) 
+  10          
+  11          
+  12          // X-tal frequency: 14.745600 MHz
+  13          // RF frequency A: 433.302000 MHz       Rx
+  14          // RF frequency B: 433.302000 MHz       Tx
+  15          // RX Mode: Low side LO
+  16          // Frequency separation: 64 kHz
+  17          // Data rate: 2.4 kBaud
+  18          // Data Format: Manchester
+  19          // RF output power: 10 dBm
+  20          // IF/RSSI: RSSI Enabled
+  21          
+  22          
+  23          /*
+  24          RF_RXTXPAIR_SETTINGS code RF_SETTINGS = {
+  25              0x4B, 0x2F, 0x0E,    // Modem 0, 1 and 2
+  26              0x58, 0x00, 0x00,    // Freq A
+  27              0x41, 0xFC, 0x9C,    // Freq B
+  28              0x02, 0x80,          // FSEP 1 and 0
+  29              0x60,                // PLL_RX
+  30              0x48,                // PLL_TX
+  31              0x44,                // CURRENT_RX
+  32              0x81,                // CURRENT_TX
+  33              0x0A,                // FREND
+  34              0xFF,                // PA_POW
+  35              0xC0,                // MATCH
+  36              0x00,                // PRESCALER
+  37              };
+  38          */
+  39          // X-tal frequency: 14.745600 MHz
+  40          // RF frequency A: 433.038686 MHz       Rx
+  41          // RF frequency B: 433.038686 MHz       Tx
+  42          // RX Mode: Low side LO
+  43          // Frequency separation: 64 kHz
+  44          // Data rate: 38.4 kBaud
+  45          // Data Format: Manchester
+  46          // RF output power: 0 dBm
+  47          // IF/RSSI: RSSI Enabled
+  48          
+  49          RF_RXTXPAIR_SETTINGS code RF_SETTINGS = {
+  50              0xA9, 0x2F, 0x1C,    // Modem 0, 1 and 2
+  51              0x66, 0xA0, 0x00,    // Freq A
+  52              0x41, 0xF2, 0x53,    // Freq B
+  53              0x02, 0x80,          // FSEP 1 and 0
+  54              0x70,                // PLL_RX
+  55              0x48,                // PLL_TX
+C51 COMPILER V7.00  READ2TAG                                                               08/26/2006 19:48:13 PAGE 2   
+
+  56              0x44,                // CURRENT_RX
+  57              0x81,                // CURRENT_TX
+  58              0x0A,                // FREND
+  59              0x40,                // PA_POW
+  60              0xC0,                // MATCH
+  61              0x00,                // PRESCALER
+  62              };
+  63          
+  64              // Calibration data
+  65              RF_RXTXPAIR_CALDATA xdata RF_CALDATA;
+  66          
+  67          unsigned char receivedByte;
+  68          unsigned char memBank;
+  69          unsigned char Q;
+  70          unsigned char maskLen;
+  71          unsigned char mask[8];
+  72          unsigned char memData[8];
+  73          unsigned char* char_pointer;
+  74          unsigned result;
+  75          
+  76          int uart0_wait_and_receive(unsigned char *cp,unsigned short timeout){
+  77   1              data unsigned char i;
+  78   1              for(i=0;i<100;i++){
+  79   2                  if (RI_0) {
+  80   3                      RI_0=0;
+  81   3                              *cp=UART0_RECEIVE();
+  82   3                      return 0;         
+  83   3                  }
+  84   2              }
+  85   1      
+  86   1              halConfigTimer23(TIMER3|TIMER23_NO_INT_TIMER, 10000, CC1010EB_CLKFREQ);   
+  87   1          INT_SETFLAG(INUM_TIMER3, INT_CLR);
+  88   1          TIMER3_RUN(TRUE);
+  89   1      
+  90   1          while (1) {
+  91   2              // Check if 10 ms have passed
+  92   2              if (INT_GETFLAG(INUM_TIMER3)) {
+  93   3                  // Clear interrupt flag and decrement timeout value
+  94   3                  INT_SETFLAG(INUM_TIMER3, INT_CLR);
+  95   3                              if (timeout && !--timeout) {
+  96   4                                      timeout=255;
+  97   4                      return 1;                      // Timeout
+  98   4                              }
+  99   3              }
+ 100   2              if (RI_0) {
+ 101   3                  RI_0=0;
+ 102   3                              *cp=UART0_RECEIVE();
+ 103   3                  return 0;         
+ 104   3              }
+ 105   2          }
+ 106   1      }
+ 107          
+ 108          int uart1_wait_and_receive(unsigned char *cp,unsigned short timeout){
+ 109   1              data unsigned char i;
+ 110   1              for(i=0;i<100;i++){
+ 111   2                  if (RI_1) {
+ 112   3                      RI_1=0;
+ 113   3                              *cp=UART1_RECEIVE();
+ 114   3                      return 0;         
+ 115   3                  }
+ 116   2              }
+ 117   1      
+C51 COMPILER V7.00  READ2TAG                                                               08/26/2006 19:48:13 PAGE 3   
+
+ 118   1              halConfigTimer23(TIMER3|TIMER23_NO_INT_TIMER, 10000, CC1010EB_CLKFREQ);   
+ 119   1          INT_SETFLAG(INUM_TIMER3, INT_CLR);
+ 120   1          TIMER3_RUN(TRUE);
+ 121   1      
+ 122   1          while (1) {
+ 123   2              // Check if 10 ms have passed
+ 124   2              if (INT_GETFLAG(INUM_TIMER3)) {
+ 125   3                  // Clear interrupt flag and decrement timeout value
+ 126   3                  INT_SETFLAG(INUM_TIMER3, INT_CLR);
+ 127   3                              if (timeout && !--timeout) {
+ 128   4                                      timeout=255;
+ 129   4                      return 1;                      // Timeout
+ 130   4                              }
+ 131   3              }
+ 132   2              if (RI_1) {
+ 133   3                  RI_1=0;
+ 134   3                              *cp=UART1_RECEIVE();
+ 135   3                  return 0;         
+ 136   3              }
+ 137   2          }
+ 138   1      }
+ 139          
+ 140          void main()
+ 141          {
+ 142   1      
+ 143   1              
+ 144   1      
+ 145   1              unsigned char i;
+ 146   1              // Initialize peripherals
+ 147   1              WDT_ENABLE(FALSE);
+ 148   1              // Set optimum settings for speed and low power consumption
+ 149   1              MEM_NO_WAIT_STATES();
+ 150   1              FLASH_SET_POWER_MODE(FLASH_STANDBY_BETWEEN_READS);
+ 151   1              
+ 152   1              // Calibration
+ 153   1              halRFCalib(&RF_SETTINGS, &RF_CALDATA);
+ 154   1      
+ 155   1      #ifdef UART0
+                              UART0_SETUP(57600, CC1010EB_CLKFREQ, UART_NO_PARITY | UART_RX_TX | UART_POLLED);
+              #else
+ 158   1                      UART1_SETUP(57600, CC1010EB_CLKFREQ, UART_NO_PARITY | UART_RX_TX | UART_POLLED);
+ 159   1      #endif
+ 160   1              RLED_OE(TRUE);
+ 161   1              GLED_OE(TRUE);
+ 162   1              BLED_OE(TRUE);
+ 163   1              YLED_OE(TRUE);
+ 164   1              
+ 165   1              init_command();
+ 166   1                      
+ 167   1              BLED=LED_ON;
+ 168   1              while(1){
+ 169   2                      init_command();
+ 170   2                      deSelect();
+ 171   2                      halRFSetRxTxOff(RF_OFF, &RF_SETTINGS, &RF_CALDATA);
+ 172   2      
+ 173   2                      receivedByte=getchar();
+ 174   2      /*
+ 175   2      #ifdef UART0
+ 176   2                      if(uart0_wait_and_receive(&receivedByte,10)){
+ 177   2                              //if time out
+ 178   2                                      UART0_WAIT_AND_SEND(0xAA);
+ 179   2      #else
+C51 COMPILER V7.00  READ2TAG                                                               08/26/2006 19:48:13 PAGE 4   
+
+ 180   2                      if(uart1_wait_and_receive(&receivedByte,10)){
+ 181   2                              //if time out
+ 182   2                                      UART1_WAIT_AND_SEND(0xAA);
+ 183   2      #endif
+ 184   2                              continue;
+ 185   2                      }*/
+ 186   2      
+ 187   2                      RLED=LED_OFF;
+ 188   2                      switch(receivedByte){
+ 189   3                              case 0x0a://select command
+ 190   3                                      RLED=LED_ON;
+ 191   3                                      //send_data_frame(&receivedByte,1);
+ 192   3                                      Q=getchar();
+ 193   3                                      memBank=getchar();
+ 194   3                                      maskLen=getchar();
+ 195   3                                      for(i=0;i<maskLen;i++){
+ 196   4                                              mask[i]=getchar();
+ 197   4                                      }
+ 198   3                                      select_by_mask(memBank,(unsigned short*)&mask,maskLen,Q);
+ 199   3                                      RLED=LED_OFF;
+ 200   3                                      break;
+ 201   3                              case 0xC0://read command 
+ 202   3                                      GLED=LED_ON;
+ 203   3                                      for(i=0;i<8;i++){
+ 204   4                                              mask[i]=getchar();
+ 205   4                                      }
+ 206   3                                      memBank=getchar();
+ 207   3                                      maskLen=getchar();
+ 208   3      
+ 209   3      
+ 210   3                                      result=get_data_by_epc((unsigned short*)mask,memBank,(unsigned char*)&tag_change_data,maskLen);
+ 211   3                                      
+ 212   3                                      if(result==0){
+ 213   4                                      RLED=LED_ON;
+ 214   4                                      GLED=LED_OFF;
+ 215   4                                              return;
+ 216   4                                      }
+ 217   3                                      send_rs232_sync_bytes();
+ 218   3      
+ 219   3      #ifdef UART0
+                                              UART0_WAIT_AND_SEND(0xf0);
+                                              UART0_WAIT_AND_SEND(memBank);
+              #else
+ 223   3                                      UART1_WAIT_AND_SEND(0xf0);
+ 224   3                                      UART1_WAIT_AND_SEND(memBank);
+ 225   3      #endif
+ 226   3      
+ 227   3                                      for(i=0;i<8;i++){
+ 228   4      #ifdef UART0
+                                                      UART0_WAIT_AND_SEND(mask[i]);
+              #else
+ 231   4                                              UART1_WAIT_AND_SEND(mask[i]);
+ 232   4      #endif
+ 233   4                                      }
+ 234   3                                      char_pointer=(unsigned char*)&tag_change_data;
+ 235   3                                      for(i=0;i<maskLen;i++){
+ 236   4                                              
+ 237   4      #ifdef UART0
+                                                      UART0_WAIT_AND_SEND(*char_pointer);
+              #else
+ 240   4                                              UART1_WAIT_AND_SEND(*char_pointer);
+ 241   4      #endif
+C51 COMPILER V7.00  READ2TAG                                                               08/26/2006 19:48:13 PAGE 5   
+
+ 242   4                                              char_pointer++;
+ 243   4                                      }
+ 244   3      
+ 245   3                                      send_rs232_finish_bytes();
+ 246   3                                      deSelect();
+ 247   3                                      GLED=LED_OFF;
+ 248   3                                      break;
+ 249   3                              case 0xc1://write command
+ 250   3                                      //send_data_frame(&receivedByte,1);
+ 251   3                                      for(i=0;i<8;i++){
+ 252   4                                              mask[i]=getchar();
+ 253   4                                      }
+ 254   3                                      memBank=getchar();
+ 255   3                                      maskLen=getchar();
+ 256   3      
+ 257   3                                      for(i=0;i<maskLen;i++){
+ 258   4                                              memData[i]=getchar();
+ 259   4                                              if(memData[i]==0x0a){
+ 260   5                                                              RLED=~RLED;
+ 261   5                                                              GLED=~GLED;
+ 262   5                                                              BLED=~BLED;
+ 263   5                                                              YLED=~YLED;
+ 264   5                                              }
+ 265   4                                      }
+ 266   3                                      put_data_by_epc((unsigned short*)mask,memBank,(unsigned char*)&memData,0,maskLen/2);//len in 2 byte
+ 267   3                                      break;
+ 268   3                              case 0xdd://kill command
+ 269   3                                      for(i=0;i<8;i++){
+ 270   4                                              mask[i]=getchar();
+ 271   4                                      }
+ 272   3      
+ 273   3                                      for(i=0;i<4;i++){
+ 274   4                                              memData[i]=getchar();
+ 275   4                                      }
+ 276   3                                      kill_tag((unsigned short*)&mask,(unsigned short*)&memData);
+ 277   3                                      break;
+ 278   3                      }
+ 279   2              }
+ 280   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1120    ----
+   CONSTANT SIZE    =     19    ----
+   XDATA SIZE       =     40      11
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       2
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

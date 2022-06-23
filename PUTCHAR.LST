@@ -1,0 +1,179 @@
+C51 COMPILER V7.00  PUTCHAR                                                                08/24/2006 22:10:07 PAGE 1   
+
+
+C51 COMPILER V7.00, COMPILATION OF MODULE PUTCHAR
+OBJECT MODULE PLACED IN PUTCHAR.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE PUTCHAR.C LARGE BROWSE OMF251 DEBUG
+
+stmt level    source
+
+   1          /***********************************************************************/
+   2          /*  This file is part of the C51 Compiler package                      */
+   3          /*  Copyright KEIL ELEKTRONIK GmbH 1990 - 2002                         */
+   4          /***********************************************************************/
+   5          /*                                                                     */
+   6          /*  PUTCHAR.C:  This routine is the general character output of C51.   */
+   7          /*  You may add this file to a uVision2 project.                       */
+   8          /*                                                                     */
+   9          /*  To translate this file use C51 with the following invocation:      */
+  10          /*     C51 PUTCHAR.C <memory model>                                    */
+  11          /*                                                                     */
+  12          /*  To link the modified PUTCHAR.OBJ file to your application use the  */
+  13          /*  following Lx51 invocation:                                         */
+  14          /*     Lx51 <your object file list>, PUTCHAR.OBJ <controls>            */
+  15          /*                                                                     */
+  16          /***********************************************************************/
+  17          
+  18          #include <Chipcon/reg1010.h>
+  19          
+  20          #define XON  0x11
+  21          #define XOFF 0x13
+  22          #define MINI;
+  23          
+  24          
+  25          /*
+  26           * putchar (full version):  expands '\n' into CR LF and handles
+  27           *                          XON/XOFF (Ctrl+S/Ctrl+Q) protocol
+  28           */
+  29          #ifdef FULL
+              
+              #ifdef UART0
+                      char putchar (char c)  {
+                      
+                        if (c == '\n')  {
+                          if (RI_0)  {
+                            if (SBUF0 == XOFF)  {
+                              do  {
+                                RI_0 = 0;
+                                while (!RI_0);
+                              }
+                              while (SBUF0 != XON);
+                              RI_0 = 0; 
+                            }
+                          }
+                          while (!TI_0);
+                          TI_0 = 0;
+                          SBUF0 = 0x0d;                         /* output CR  */
+                        }
+                        if (RI_0)  {
+                          if (SBUF0 == XOFF)  {
+                            do  {
+                              RI_ = 0;
+                              while (!RI_0);
+                            }
+                            while (SBUF0 != XON);
+C51 COMPILER V7.00  PUTCHAR                                                                08/24/2006 22:10:07 PAGE 2   
+
+                            RI_0 = 0; 
+                          }
+                        }
+                        while (!TI_0);
+                        TI_0 = 0;
+                        return (SBUF0 = c);
+                      }
+              #else
+                      char putchar (char c)  {
+                        if (c == '\n')  {
+                          if (RI_1)  {
+                            if (SBUF1 == XOFF)  {
+                              do  {
+                                RI_1 = 0;
+                                while (!RI_1);
+                              }
+                              while (SBUF1 != XON);
+                              RI_1 = 0; 
+                            }
+                          }
+                          while (!TI_1);
+                          TI_1 = 0;
+                          SBUF1 = 0x0d;                         /* output CR  */
+                        }
+                        if (RI_1)  {
+                          if (SBUF1 == XOFF)  {
+                            do  {
+                              RI_1 = 0;
+                              while (!RI_1);
+                            }
+                            while (SBUF1 != XON);
+                            RI_1 = 0; 
+                          }
+                        }
+                        while (!TI_1);
+                        TI_1 = 0;
+                        return (SBUF1 = c);
+                      }
+              #endif
+              
+              #endif
+  97          
+  98          /*
+  99           * putchar (basic version): expands '\n' into CR LF
+ 100           */
+ 101          #ifdef BASIC
+              
+              #ifdef UART0
+                      char putchar (char c)  {
+                        if (c == '\n')  {
+                          while (!TI_0);
+                          TI_0 = 0;
+                          SBUF0 = 0x0d;                         /* output CR  */
+                        }
+                        while (!TI_0);
+                        TI_0 = 0;
+                        return (SBUF0 = c);
+                      }
+              #else
+                      char putchar (char c)  {
+                        if (c == '\n')  {
+                          while (!TI_1);
+C51 COMPILER V7.00  PUTCHAR                                                                08/24/2006 22:10:07 PAGE 3   
+
+                          TI_1 = 0;
+                          SBUF1 = 0x0d;                         /* output CR  */
+                        }
+                        while (!TI_1);
+                        TI_1 = 0;
+                        return (SBUF1 = c);
+                      }
+              #endif
+              
+              #endif
+ 128          
+ 129          /*
+ 130           * putchar (mini version): outputs charcter only
+ 131           */
+ 132          #ifdef MINI
+ 133          
+ 134          #ifdef UART0
+                      char putchar (char c)  {
+                        while (!TI_0);
+                        TI_0 = 0;
+                        return (SBUF0 = c);
+                      }
+              #else
+ 141                  char putchar (char c)  {
+ 142   1                while (!TI_1);
+ 143   1                TI_1 = 0;
+ 144   1                return (SBUF1 = c);
+ 145   1              }
+ 146          #endif
+ 147          
+ 148          #endif
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =      8    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,59 @@
+C51 COMPILER V7.00  READYSTATE                                                             03/03/2007 21:12:42 PAGE 1   
+
+
+C51 COMPILER V7.00, COMPILATION OF MODULE READYSTATE
+OBJECT MODULE PLACED IN ReadyState.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE ReadyState.c LARGE BROWSE OMF251 DEBUG
+
+stmt level    source
+
+   1          #include "EPC_STATE.h"
+   2          
+   3          void ReadyStateFunction(){
+   4   1      
+   5   1              RLED=LED_ON;
+   6   1              
+   7   1              while(1){
+   8   2                      //接收資料
+   9   2                      halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA); //打開RX
+  10   2                      ReciveByte = halRFReceivePacket(10,&buffer,64,0,CC1010EB_CLKFREQ) ;
+  11   2                      if(ReciveByte==0)continue;
+  12   2                      
+  13   2                      command = buffer[0] ;
+  14   2                      //分辨指令
+  15   2                      switch(command){
+  16   3                              case SINGLE_SELECT_HEADER:
+  17   3                                      AnswerToSingleSelect((MySelect*)&buffer);
+  18   3                                      return;
+  19   3                              case SELECT_HEADER :
+  20   3                                      AnswerToSelect((MySelect*)&buffer);
+  21   3                                      return;
+  22   3                              case QUERY_HEADER  :
+  23   3                                      AnswerToQuery((MyQuery*)&buffer) ;
+  24   3                                      return;
+  25   3                              default :
+  26   3                                      state=ReadyState;    //Remain in Ready 
+  27   3                                      return ;
+  28   3                      }
+  29   2              }
+  30   1      }
+  31          
+  32          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    108    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

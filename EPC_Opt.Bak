@@ -1,0 +1,48 @@
+### uVision2 Project, (C) Keil Software
+### Do not modify !
+
+ cExt (*.c)
+ aExt (*.a*; *.src)
+ oExt (*.obj)
+ lExt (*.lib)
+ tExt (*.txt)
+ pExt (*.plm)
+ CppX (*.cpp)
+ DaveTm { 0,0,0,0,0,0,0,0 }
+
+Target (Target 1), 0x0000 // Tools: 'MCS-51'
+GRPOPT 1,(Source Group 1),1,0,0
+
+OPTFFF 1,1,1,503316482,0,164,180,0,<.\Read2Tag.c><Read2Tag.c> { 44,0,0,0,2,0,0,0,3,0,0,0,255,255,255,255,255,255,255,255,252,255,255,255,226,255,255,255,22,0,0,0,29,0,0,0,161,2,0,0,57,1,0,0 }
+OPTFFF 1,2,4,0,0,0,0,0,<C:\Keil\C51\LIB\Chipcon\halLib_large.LIB><halLib_large.LIB> 
+OPTFFF 1,3,4,0,0,0,0,0,<C:\Keil\C51\LIB\Chipcon\culLib_large.LIB><culLib_large.LIB> 
+OPTFFF 1,4,1,1006632960,0,144,144,0,<.\epc_util_command_set.c><epc_util_command_set.c> { 44,0,0,0,0,0,0,0,1,0,0,0,255,255,255,255,255,255,255,255,252,255,255,255,226,255,255,255,88,0,0,0,116,0,0,0,38,3,0,0,145,1,0,0 }
+OPTFFF 1,5,5,0,0,12,23,0,<.\epc_util_command_set.h><epc_util_command_set.h> { 44,0,0,0,0,0,0,0,1,0,0,0,255,255,255,255,255,255,255,255,252,255,255,255,226,255,255,255,0,0,0,0,0,0,0,0,206,2,0,0,29,1,0,0 }
+OPTFFF 1,6,5,0,0,18,18,0,<.\EPC_COMMAND.h><EPC_COMMAND.h> { 44,0,0,0,0,0,0,0,1,0,0,0,255,255,255,255,255,255,255,255,252,255,255,255,226,255,255,255,211,255,255,255,52,0,0,0,161,2,0,0,81,1,0,0 }
+OPTFFF 1,7,1,301989888,0,67,67,0,<.\PUTCHAR.C><PUTCHAR.C> { 44,0,0,0,0,0,0,0,1,0,0,0,255,255,255,255,255,255,255,255,252,255,255,255,226,255,255,255,88,0,0,0,116,0,0,0,196,2,0,0,109,1,0,0 }
+OPTFFF 1,8,1,268435456,0,17,17,0,<.\GETKEY.C><GETKEY.C> { 44,0,0,0,0,0,0,0,1,0,0,0,255,255,255,255,255,255,255,255,252,255,255,255,226,255,255,255,0,0,0,0,0,0,0,0,108,2,0,0,249,0,0,0 }
+
+ExtF <.\epc_util_command_set.h> 12,23,0,{ 44,0,0,0,0,0,0,0,1,0,0,0,255,255,255,255,255,255,255,255,252,255,255,255,226,255,255,255,0,0,0,0,0,0,0,0,206,2,0,0,29,1,0,0 }
+ExtF <.\EPC_COMMAND.h> 18,18,0,{ 44,0,0,0,0,0,0,0,1,0,0,0,255,255,255,255,255,255,255,255,252,255,255,255,226,255,255,255,211,255,255,255,52,0,0,0,161,2,0,0,81,1,0,0 }
+
+TARGOPT 1, (Target 1)
+ CLK51=14745600
+  OPTTT 1,1,1,0
+  OPTHX 0,65535,0,0,0
+  OPTLX 120,65,8,<.\>
+  OPTOX 16
+  OPTLT 1,1,1,0,1,1,0,1,0,0,0,0
+  OPTXL 1,1,1,1,1,1,1,0,0
+  OPTFL 1,0,1
+  OPTBL 0,(CC1010 Data Sheet)<DATASHTS\Chipcon\CC1010_Data_Sheet.pdf>
+  OPTBL 1,(CC1010IDE User Manual)<DATASHTS\Chipcon\CC1010IDE_User_Manual.pdf>
+  OPTBL 2,(CC1010DK User Manual)<DATASHTS\Chipcon\CC1010DK_User_Manual.pdf>
+  OPTBL 3,(CC1010 Examples Readme)<DATASHTS\Chipcon\CC1010_Examples_readme.pdf>
+  OPTDL (S8051.DLL)()(DP51.DLL)(-p550)(S8051.DLL)()(cc1010disp.DLL)(-p550)
+  OPTDBG 2046,3,()()()()()()()()()() ()()()()
+  OPTKEY 0,(CC1010MON)(-S3 -B8 -O0)
+  OPTDF 0x84
+  OPTLE <>
+  OPTLC <>
+EndOpt
+

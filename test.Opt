@@ -1,0 +1,40 @@
+### uVision2 Project, (C) Keil Software
+### Do not modify !
+
+ cExt (*.c)
+ aExt (*.a*; *.src)
+ oExt (*.obj)
+ lExt (*.lib)
+ tExt (*.txt)
+ pExt (*.plm)
+ CppX (*.cpp)
+ DaveTm { 0,0,0,0,0,0,0,0 }
+
+Target (Target 1), 0x0000 // Tools: 'MCS-51'
+GRPOPT 1,(Source Group 1),1,0,0
+
+OPTFFF 1,1,1,2,0,170,174,0,<D:\SEAN001\halRFtest.c><halRFtest.c> { 44,0,0,0,2,0,0,0,3,0,0,0,255,255,255,255,255,255,255,255,252,255,255,255,226,255,255,255,88,0,0,0,116,0,0,0,193,2,0,0,108,1,0,0 }
+OPTFFF 1,2,4,0,0,0,0,0,<C:\Keil\C51\LIB\Chipcon\halLib_small.LIB><halLib_small.LIB> 
+
+
+TARGOPT 1, (Target 1)
+ CLK51=14745600
+  OPTTT 1,1,1,0
+  OPTHX 0,65535,0,0,0
+  OPTLX 120,65,8,<.\>
+  OPTOX 16
+  OPTLT 1,1,1,0,1,1,0,1,0,0,0,0
+  OPTXL 1,1,1,1,1,1,1,0,0
+  OPTFL 1,0,1
+  OPTBL 0,(CC1010 Data Sheet)<DATASHTS\Chipcon\CC1010_Data_Sheet.pdf>
+  OPTBL 1,(CC1010IDE User Manual)<DATASHTS\Chipcon\CC1010IDE_User_Manual.pdf>
+  OPTBL 2,(CC1010DK User Manual)<DATASHTS\Chipcon\CC1010DK_User_Manual.pdf>
+  OPTBL 3,(CC1010 Examples Readme)<DATASHTS\Chipcon\CC1010_Examples_readme.pdf>
+  OPTDL (S8051.DLL)()(DP51.DLL)(-p550)(S8051.DLL)()(cc1010disp.DLL)(-p550)
+  OPTDBG 2046,3,()()()()()()()()()() ()()()()
+  OPTKEY 0,(CC1010MON)(-S3 -B57600 -O0)
+  OPTDF 0x84
+  OPTLE <>
+  OPTLC <>
+EndOpt
+

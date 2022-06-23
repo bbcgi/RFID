@@ -1,0 +1,107 @@
+C51 COMPILER V7.00  ACKNOWLEDGEDSTATE                                                      03/03/2007 21:12:42 PAGE 1   
+
+
+C51 COMPILER V7.00, COMPILATION OF MODULE ACKNOWLEDGEDSTATE
+OBJECT MODULE PLACED IN AcknowledgedState.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE AcknowledgedState.c LARGE BROWSE OMF251 DEBUG
+
+stmt level    source
+
+   1          #include "EPC_STATE.h"
+   2          
+   3          void AcknowledgedStateFunction(){
+   4   1      
+   5   1              YLED=LED_ON;
+   6   1              
+   7   1              while(1){
+   8   2              //接收資料
+   9   2              halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA); //打開RX
+  10   2              ReciveByte = halRFReceivePacket(10,&buffer,64,0,CC1010EB_CLKFREQ) ;
+  11   2              if(ReciveByte==0)continue;
+  12   2              
+  13   2              
+  14   2              command = buffer[0] ;
+  15   2              //分辨指令
+  16   2              switch(command){
+  17   3                      case SINGLE_SELECT_HEADER:
+  18   3                              AnswerToSingleSelect((MySelect*)&buffer);
+  19   3                              return;
+  20   3                      case SELECT_HEADER :
+  21   3                              AnswerToSelect((MySelect*)&buffer);
+  22   3                              return;
+  23   3                      case QUERY_HEADER  :
+  24   3                              AnswerToQuery((MyQuery*)&buffer) ;
+  25   3                              return;
+  26   3                      case QUERY_ADJUST_HEADER :
+  27   3                      case QUERY_REP_HEADER :
+  28   3                              state=ReadyState;
+  29   3                              return ;                
+  30   3                      case ACK_HEADER:
+  31   3                              /*判斷Reader送回的ACK中RN16是否和之前TAG送出的相同*/
+  32   3                              Ack=(MyACK*)buffer;
+  33   3                              if(Ack->RN_ACK==RN_16)/*若相同則TAG反應PC,EPC,CRC-16*/
+  34   3                              {
+  35   4                                      halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+  36   4                                      halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&EpcMB,12);
+  37   4                                      halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA); 
+  38   4                                      continue;
+  39   4                                      //mainFunctionPointer=&AcknowledgedStateFunction;
+  40   4                                      //return ;
+  41   4                              }
+  42   3                              else
+  43   3                              {
+  44   4                                      state=ArbitrateState;
+  45   4                                      return ;
+  46   4                              }       
+  47   3                              break;
+  48   3                      case REQ_RN_HEADER :
+  49   3                              ReqRNCommand=(MyReq_RN*)buffer;
+  50   3                              if(ReqRNCommand->RN_Req_RN==RN_16)
+  51   3                              {
+  52   4                                      if(ReceivedMB.AccessPwdA !=0 || ReceivedMB.AccessPwdB !=0)
+  53   4                                      {
+  54   5                                              state=OpenState;
+  55   5                                      }
+C51 COMPILER V7.00  ACKNOWLEDGEDSTATE                                                      03/03/2007 21:12:42 PAGE 2   
+
+  56   4                                      else
+  57   4                                      {
+  58   5                                              state=SecuredState;
+  59   5                                      }
+  60   4                                      
+  61   4                              }else{
+  62   4                                      state=AcknowledgedState;
+  63   4                                      return ;
+  64   4                              }       
+  65   3                              //for "if(Ack->RN_ACK==RN_16 && ReceivedMB.AccessPwd !=0)"
+  66   3                              // and "else if(Ack->RN_ACK==RN_16 && ReceivedMB.AccessPwd ==0)"
+  67   3                              halRandomNumberGen((byte*)&Handler,2);
+  68   3                              halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+  69   3                              halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&Handler,2);
+  70   3                              halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA); 
+  71   3                              return;
+  72   3      
+  73   3                      default :
+  74   3                              state=ArbitrateState;   
+  75   3                              return ;
+  76   3                      } 
+  77   2              }       
+  78   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    358    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

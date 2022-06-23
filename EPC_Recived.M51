@@ -1,0 +1,10 @@
+BL51 BANKED LINKER/LOCATER V5.00                                                        08/13/2006  19:40:42  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V5.00, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE EPC_Recived.obj, C:\Keil\C51\LIB\Chipcon\halLib_small.LIB TO EPC_Recived CODE (0X0080-0X75FF) X
+>> DATA (0X0000-0X07DF)
+
+
+*** FATAL ERROR L218: NOT AN OBJECT FILE
+    FILE: C:\Keil\C51\LIB\Chipcon\halLib_small.LIB

@@ -1,0 +1,65 @@
+C51 COMPILER V7.00  GETKEY                                                                 08/24/2006 22:02:44 PAGE 1   
+
+
+C51 COMPILER V7.00, COMPILATION OF MODULE GETKEY
+OBJECT MODULE PLACED IN GETKEY.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE GETKEY.C LARGE BROWSE OMF251 DEBUG
+
+stmt level    source
+
+   1          /***********************************************************************/
+   2          /*  This file is part of the C51 Compiler package                      */
+   3          /*  Copyright KEIL ELEKTRONIK GmbH 1993 - 2002                         */
+   4          /***********************************************************************/
+   5          /*                                                                     */
+   6          /*  GETKEY.C:  This routine is the general character input of C51.     */
+   7          /*  You may add this file to a uVision2 project.                       */
+   8          /*                                                                     */
+   9          /*  To translate this file use C51 with the following invocation:      */
+  10          /*     C51 GETKEY.C  <memory model>                                    */
+  11          /*                                                                     */
+  12          /*  To link the modified GETKEY.OBJ file to your application use the   */
+  13          /*  following Lx51 invocation:                                         */
+  14          /*     Lx51 <your object file list>, GETKEY.OBJ <controls>             */
+  15          /*                                                                     */
+  16          /***********************************************************************/
+  17          
+  18          #include <Chipcon/reg1010.h>
+  19          
+  20          #ifdef UART0
+                      char _getkey ()  {
+                        char c;
+                      
+                        while (!RI_0);
+                        c = SBUF0;
+                        RI_0 = 0;
+                        return (c);
+                      }
+              #else
+  30                  char _getkey ()  {
+  31   1                char c;
+  32   1              
+  33   1                while (!RI_1);
+  34   1                c = SBUF1;
+  35   1                RI_1 = 0;
+  36   1                return (c);
+  37   1              }
+  38          #endif
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =      8    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

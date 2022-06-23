@@ -1,0 +1,55 @@
+Build target 'Target 1'
+compiling halRFtest.c...
+D:\SEAN001\HALRFTEST.C(188): error C202: 'RF_SETTINGS': undefined identifier
+D:\SEAN001\HALRFTEST.C(191): error C202: 'RF_SETTINGS': undefined identifier
+D:\SEAN001\HALRFTEST.C(204): error C202: 'RF_SETTINGS': undefined identifier
+D:\SEAN001\HALRFTEST.C(208): error C202: 'RF_SETTINGS': undefined identifier
+D:\SEAN001\HALRFTEST.C(234): error C202: 'RF_SETTINGS': undefined identifier
+D:\SEAN001\HALRFTEST.C(236): error C202: 'RF_SETTINGS': undefined identifier
+Target not created
+Build target 'Target 1'
+compiling halRFtest.c...
+D:\SEAN001\HALRFTEST.C(188): error C202: 'RF_SETTINGS': undefined identifier
+D:\SEAN001\HALRFTEST.C(191): error C202: 'RF_SETTINGS': undefined identifier
+D:\SEAN001\HALRFTEST.C(204): error C202: 'RF_SETTINGS': undefined identifier
+D:\SEAN001\HALRFTEST.C(208): error C202: 'RF_SETTINGS': undefined identifier
+D:\SEAN001\HALRFTEST.C(234): error C202: 'RF_SETTINGS': undefined identifier
+D:\SEAN001\HALRFTEST.C(236): error C202: 'RF_SETTINGS': undefined identifier
+Target not created
+Build target 'Target 1'
+compiling halRFtest.c...
+D:\SEAN001\HALRFTEST.C(188): error C202: 'RF_SETTINGS': undefined identifier
+D:\SEAN001\HALRFTEST.C(191): error C202: 'RF_SETTINGS': undefined identifier
+D:\SEAN001\HALRFTEST.C(204): error C202: 'RF_SETTINGS': undefined identifier
+D:\SEAN001\HALRFTEST.C(208): error C202: 'RF_SETTINGS': undefined identifier
+D:\SEAN001\HALRFTEST.C(234): error C202: 'RF_SETTINGS': undefined identifier
+D:\SEAN001\HALRFTEST.C(236): error C202: 'RF_SETTINGS': undefined identifier
+Target not created
+Build target 'Target 1'
+compiling halRFtest.c...
+D:\SEAN001\HALRFTEST.C(188): error C202: 'RF_SETTINGS': undefined identifier
+D:\SEAN001\HALRFTEST.C(191): error C202: 'RF_SETTINGS': undefined identifier
+D:\SEAN001\HALRFTEST.C(204): error C202: 'RF_SETTINGS': undefined identifier
+D:\SEAN001\HALRFTEST.C(208): error C202: 'RF_SETTINGS': undefined identifier
+D:\SEAN001\HALRFTEST.C(234): error C202: 'RF_SETTINGS': undefined identifier
+D:\SEAN001\HALRFTEST.C(236): error C202: 'RF_SETTINGS': undefined identifier
+Target not created
+Build target 'Target 1'
+compiling halRFtest.c...
+linking...
+*** WARNING L29: SEGMENT LOCATED OUTSIDE CLASS AREA
+    SEGMENT: ?CO??C_STARTUP?0
+
+Program Size: data=56.0 xdata=8 const=19 code=2476
+creating hex file from "test"...
+"test" - 0 Error(s), 1 Warning(s).
+Build target 'Target 1'
+"test" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+"test" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+"test" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+"test" - 0 Error(s), 0 Warning(s).
+Build target 'Target 1'
+"test" - 0 Error(s), 0 Warning(s).

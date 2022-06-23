@@ -1,0 +1,129 @@
+C51 COMPILER V7.00  RECIVED                                                                08/14/2006 12:27:58 PAGE 1   
+
+
+C51 COMPILER V7.00, COMPILATION OF MODULE RECIVED
+OBJECT MODULE PLACED IN Recived.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE Recived.c BROWSE OMF251 DEBUG
+
+stmt level    source
+
+   1          #include <chipcon/hal.h>
+   2          #include <chipcon/reg1010.h>
+   3          #include <chipcon/cc1010eb.h>
+   4          
+   5          #define CRC16_POLY  0x1021
+   6          #define CRC16_INIT  0xFFFF
+   7          #define CRC_OK       0
+   8          #define PREAMBLE_BYTE_COUNT 7
+   9          
+  10          xdata byte buffer[100];
+  11          
+  12          RF_RXTXPAIR_SETTINGS code RF_SETTINGS = {
+  13              0x4B, 0x2F, 0x0E,    // Modem 0, 1 and 2
+  14              0x58, 0x00, 0x00,    // Freq A
+  15              0x41, 0xFC, 0x9C,    // Freq B
+  16              0x02, 0x80,          // FSEP 1 and 0
+  17              0x60,                // PLL_RX
+  18              0x48,                // PLL_TX
+  19              0x44,                // CURRENT_RX
+  20              0x81,                // CURRENT_TX
+  21              0x0A,                // FREND
+  22              0xFF,                // PA_POW
+  23              0xC0,                // MATCH
+  24              0x00,                // PRESCALER
+  25              };
+  26          
+  27              // Calibration data
+  28              RF_RXTXPAIR_CALDATA xdata RF_CALDATA;
+  29          
+  30          void main()
+  31          {
+  32   1         char i ;
+  33   1         char PtrRssiByte=0;
+  34   1         byte command ;
+  35   1         //char *RSIBYTE = 1 ; 
+  36   1         
+  37   1         byte *RN16 ;
+  38   1         byte ReciveByte ;     
+  39   1        for(i=0;i<100;i++)
+  40   1                buffer[i]=0xff ;
+  41   1          // Initialize peripherals
+  42   1          WDT_ENABLE(FALSE);
+  43   1          RLED_OE(TRUE);
+  44   1          YLED_OE(TRUE);
+  45   1          BLED_OE(TRUE);
+  46   1      
+  47   1          // Set optimum settings for speed and low power consumption
+  48   1          MEM_NO_WAIT_STATES();
+  49   1          FLASH_SET_POWER_MODE(FLASH_STANDBY_BETWEEN_READS);
+  50   1      
+  51   1          // Calibration
+  52   1          halRFCalib(&RF_SETTINGS, &RF_CALDATA);
+  53   1      RLED_OE(TRUE);
+  54   1      RLED=LED_ON ;
+  55   1      BLED_OE(TRUE);
+C51 COMPILER V7.00  RECIVED                                                                08/14/2006 12:27:58 PAGE 2   
+
+  56   1      BLED=LED_ON ;
+  57   1      YLED_OE(TRUE);
+  58   1      YLED=LED_ON ;
+  59   1      
+  60   1      //BLED_OE(TRUE);
+  61   1      //BLED=LED_ON;
+  62   1          // Turn on RF for RX
+  63   1          halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA);
+  64   1      while(1){
+  65   2            
+  66   2          ReciveByte = halRFReceivePacket(10,&buffer,25,0,CC1010EB_CLKFREQ) ;
+  67   2          command = buffer[0];    
+  68   2              switch (command){
+  69   3                  case 0x08:  //Query
+  70   3                     BLED=~BLED;
+  71   3                                 halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+  72   3                                 halRandomNumberGen(RN16 , 2);  //generate RN16
+  73   3                     halRFSendPacket(PREAMBLE_BYTE_COUNT,RN16,2);
+  74   3                                 break ;
+  75   3              case 0x0A:  //Select
+  76   3                         YLED=~YLED ;
+  77   3                     break;
+  78   3                       default:
+  79   3                             RLED=~RLED;
+  80   3                       }
+  81   2        /* if(ReciveByte!= 0 )
+  82   2              {
+  83   2                 // Turn on RF for TX
+  84   2                 halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+  85   2                 halRFSendPacket(PREAMBLE_BYTE_COUNT,&RN16,2);
+  86   2                 YLED=~YLED;
+  87   2                 RLED=LED_OFF ;
+  88   2           }
+  89   2               else
+  90   2               {
+  91   2                  RLED=~RLED ;
+  92   2                      YLED=LED_OFF ;
+  93   2                }*/
+  94   2          
+  95   2        //  BLED=~BLED;
+  96   2         
+  97   2              
+  98   2         }
+  99   1      
+ 100   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    174    ----
+   CONSTANT SIZE    =     19    ----
+   XDATA SIZE       =    103    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       5
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

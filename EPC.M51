@@ -1,0 +1,9 @@
+BL51 BANKED LINKER/LOCATER V5.00                                                        08/13/2006  15:19:49  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V5.00, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE Read2Tag.obj, C:\Keil\C51\LIB\Chipcon\culLib_small.LIB TO EPC
+
+
+*** FATAL ERROR L218: NOT AN OBJECT FILE
+    FILE: C:\Keil\C51\LIB\Chipcon\culLib_small.LIB

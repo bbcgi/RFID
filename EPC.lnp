@@ -1,0 +1,11 @@
+"Read2Tag.obj",
+"C:\Keil\C51\LIB\Chipcon\halLib_large.LIB",
+"C:\Keil\C51\LIB\Chipcon\culLib_large.LIB",
+"epc_util_command_set.obj",
+"PUTCHAR.obj",
+"GETKEY.obj" 
+TO "EPC" 
+
+DISABLEWARNING (16) 
+CLASSES (XDATA (X:0x0-X:0x7FF), HDATA (X:0x0-X:0x7FF), CODE (C:0x0-C:0x7FFF), 
+ECODE (C:0x0-C:0x7FFF), HCONST (C:0x0-C:0x7FFF)) 

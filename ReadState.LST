@@ -1,0 +1,45 @@
+C51 COMPILER V7.00  READSTATE                                                              08/13/2006 21:07:20 PAGE 1   
+
+
+C51 COMPILER V7.00, COMPILATION OF MODULE READSTATE
+OBJECT MODULE PLACED IN ReadState.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE ReadState.c BROWSE OMF251 DEBUG
+
+stmt level    source
+
+   1          #include "EPC_STATE.h"
+   2          
+   3          void ReadStateFuncation(){
+   4   1              while(1){
+   5   2                      //接收資料
+   6   2      
+   7   2                      //switch(command)來分辨指令
+   8   2                      //case:
+   9   2      mainFuncationPointer=OpenStateFuncation;
+  10   2      return;
+  11   2                      //case:
+  12   2      
+  13   2                      //case:
+  14   2      
+  15   2              }
+  16   1      }
+  17          
+  18          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     10    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

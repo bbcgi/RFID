@@ -1,0 +1,63 @@
+Build target 'Target 1'
+compiling ReadyState.c...
+EPC_STATE.h(5): error C318: can't open file 'chipcon/cc1010eb_modify_led.h'
+READYSTATE.C(5): error C202: 'RLED': undefined identifier
+READYSTATE.C(10): error C202: 'CC1010EB_CLKFREQ': undefined identifier
+compiling ArbitrateState.c...
+EPC_STATE.h(5): error C318: can't open file 'chipcon/cc1010eb_modify_led.h'
+ARBITRATESTATE.C(4): error C202: 'GLED': undefined identifier
+ARBITRATESTATE.C(11): error C202: 'CC1010EB_CLKFREQ': undefined identifier
+compiling ReplyState.c...
+EPC_STATE.h(5): error C318: can't open file 'chipcon/cc1010eb_modify_led.h'
+REPLYSTATE.C(5): error C202: 'BLED': undefined identifier
+REPLYSTATE.C(10): error C202: 'CC1010EB_CLKFREQ': undefined identifier
+compiling AcknowledgedState.c...
+EPC_STATE.h(5): error C318: can't open file 'chipcon/cc1010eb_modify_led.h'
+ACKNOWLEDGEDSTATE.C(5): error C202: 'YLED': undefined identifier
+ACKNOWLEDGEDSTATE.C(10): error C202: 'CC1010EB_CLKFREQ': undefined identifier
+compiling OpenState.c...
+EPC_STATE.h(5): error C318: can't open file 'chipcon/cc1010eb_modify_led.h'
+OPENSTATE.C(15): error C202: 'YLED': undefined identifier
+OPENSTATE.C(16): error C202: 'RLED': undefined identifier
+OPENSTATE.C(22): error C202: 'CC1010EB_CLKFREQ': undefined identifier
+OPENSTATE.C(124): error C202: 'YLED': undefined identifier
+OPENSTATE.C(239): error C193: '<': bad operand type
+OPENSTATE.C(240): error C193: '<<': bad operand type
+compiling SecuredState.c...
+EPC_STATE.h(5): error C318: can't open file 'chipcon/cc1010eb_modify_led.h'
+SECUREDSTATE.C(13): error C202: 'YLED': undefined identifier
+SECUREDSTATE.C(14): error C202: 'BLED': undefined identifier
+SECUREDSTATE.C(19): error C202: 'CC1010EB_CLKFREQ': undefined identifier
+compiling KilledState.c...
+EPC_STATE.h(5): error C318: can't open file 'chipcon/cc1010eb_modify_led.h'
+compiling main.c...
+EPC_STATE.h(5): error C318: can't open file 'chipcon/cc1010eb_modify_led.h'
+Target not created
+Build target 'Target 1'
+compiling ReadyState.c...
+compiling ArbitrateState.c...
+compiling ReplyState.c...
+compiling AcknowledgedState.c...
+compiling OpenState.c...
+compiling SecuredState.c...
+compiling KilledState.c...
+compiling main.c...
+linking...
+*** WARNING L16: UNCALLED FUNCTION, IGNORED FOR OVERLAY PROCESS
+    NAME:    TURNONALLLED/MAIN
+
+*** WARNING L16: UNCALLED FUNCTION, IGNORED FOR OVERLAY PROCESS
+    NAME:    _CULSMALLCRC16/SMALLCRC16
+
+*** WARNING L16: UNCALLED FUNCTION, IGNORED FOR OVERLAY PROCESS
+    NAME:    _CULCRC16APPEND/SMALLCRC16
+
+*** WARNING L29: SEGMENT LOCATED OUTSIDE CLASS AREA
+    SEGMENT: ?CO??C_STARTUP?0
+
+*** WARNING L29: SEGMENT LOCATED OUTSIDE CLASS AREA
+    SEGMENT: ?MAIN?0004B
+
+Program Size: data=11.3 xdata=317 const=19 code=10086
+creating hex file from "EPC_Recived"...
+"EPC_Recived" - 0 Error(s), 5 Warning(s).

@@ -1,0 +1,16 @@
+"ReadyState.obj",
+"ArbitrateState.obj",
+"ReplyState.obj",
+"AcknowledgedState.obj",
+"OpenState.obj",
+"SecuredState.obj",
+"KilledState.obj",
+"main.obj",
+"C:\Keil\C51\LIB\Chipcon\halLib_large.LIB",
+"C:\Keil\C51\LIB\Chipcon\culLib_large.LIB" 
+TO "EPC_Recived" 
+
+DISABLEWARNING (13) 
+RECURSIONS (255) 
+CLASSES (XDATA (X:0x0-X:0x7DF), HDATA (X:0x0-X:0x7DF), CODE (C:0x80-C:0x75FF), 
+ECODE (C:0x80-C:0x75FF), HCONST (C:0x80-C:0x75FF)) 

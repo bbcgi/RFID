@@ -1,0 +1,107 @@
+C51 COMPILER V7.00  ARBITRATESTATE                                                         03/03/2007 21:12:42 PAGE 1   
+
+
+C51 COMPILER V7.00, COMPILATION OF MODULE ARBITRATESTATE
+OBJECT MODULE PLACED IN ArbitrateState.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE ArbitrateState.c LARGE BROWSE OMF251 DEBUG
+
+stmt level    source
+
+   1          #include "EPC_STATE.h"
+   2          
+   3          void ArbitrateStateFunction(){
+   4   1              GLED=LED_ON;
+   5   1              
+   6   1              halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA); //打開RX
+   7   1              halRandomNumberGen((byte*)&RN_16,2);
+   8   1      
+   9   1              while(1){
+  10   2              //接收資料
+  11   2              ReciveByte = halRFReceivePacket(10,&buffer,64,0,CC1010EB_CLKFREQ) ;
+  12   2              if(ReciveByte==0)continue;
+  13   2              
+  14   2              command = buffer[0] ;
+  15   2              //分辨指令
+  16   2              switch(command){
+  17   3                      case SINGLE_SELECT_HEADER:
+  18   3                              AnswerToSingleSelect((MySelect*)&buffer);
+  19   3                              return;
+  20   3                      case SELECT_HEADER :
+  21   3                              AnswerToSelect((MySelect*)&buffer);
+  22   3                              return;
+  23   3                      case QUERY_HEADER  :
+  24   3                              AnswerToQuery((MyQuery*)&buffer) ;
+  25   3                              return;
+  26   3                      case QUERY_REP_HEADER :
+  27   3                              if( SlotCounter==0x0000 ){
+  28   4                                      /*if slot=0 roll over 7fffh ,else decrement */
+  29   4                                      SlotCounter = 0x7FFF ;
+  30   4                                      /*if slot=0 go to Reply,reply new RN16 */
+  31   4                                      
+  32   4                                      halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+  33   4                                      halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&RN_16,2);
+  34   4                                      halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA); 
+  35   4                                      state=ReplyState; 
+  36   4                                      return ; 
+  37   4                              }else{
+  38   4                                      SlotCounter--;
+  39   4                                      /*if slot<>0 remain in Arbitrate Reply None*/
+  40   4                                      continue;
+  41   4                                      //mainFunctionPointer=&ArbitrateStateFunction; 
+  42   4                                      //return ; 
+  43   4                              }
+  44   3                              break;
+  45   3                      case QUERY_ADJUST_HEADER :
+  46   3                              QueryAdjustCommand=(MyQueryAdjust*)&buffer;
+  47   3                              switch(QueryAdjustCommand->UpDn){
+  48   4                                      case 0x06:
+  49   4                                              BackupQ++;
+  50   4                                              break;
+  51   4                                      case 0x03:
+  52   4                                              if(BackupQ>=2){
+  53   5                                                      BackupQ--;
+  54   5                                              }
+  55   4                                              break;
+C51 COMPILER V7.00  ARBITRATESTATE                                                         03/03/2007 21:12:42 PAGE 2   
+
+  56   4                                      default:
+  57   4                                              break;
+  58   4                              }
+  59   3                              //halRandomNumberGen((byte*)&SlotCounter ,2 );
+  60   3                              SlotCounter=GeneratorSlotCounter(BackupQ);
+  61   3      
+  62   3                              if(SlotCounter != 0)
+  63   3                              {
+  64   4                                      state=ArbitrateState;
+  65   4                                      return ;
+  66   4                              }
+  67   3                              else
+  68   3                              {
+  69   4                                      state=ReplyState;
+  70   4                                      return ;
+  71   4                              }
+  72   3                              break;
+  73   3                      default:
+  74   3                              state=ArbitrateState;    //Remain in Arbitrate 
+  75   3                              return ;
+  76   3                      }
+  77   2              }
+  78   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    294    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,282 @@
+C51 COMPILER V7.00  HALRFTEST                                                              08/21/2006 14:40:23 PAGE 1   
+
+
+C51 COMPILER V7.00, COMPILATION OF MODULE HALRFTEST
+OBJECT MODULE PLACED IN .\halRFtest.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE D:\SEAN001\halRFtest.c BROWSE DEFINE(FREQ868) OMF251 DEBUG PRINT(.\halRFtes
+                    -t.lst) OBJECT(.\halRFtest.obj)
+
+stmt level    source
+
+   1          /*****************************************************************************
+   2           *                                                                           *
+   3           *        **********                                                         *
+   4           *       ************                                                        *
+   5           *      ***        ***                                                       *
+   6           *      ***   +++   ***                                                      *
+   7           *      ***   + +   ***                                                      *
+   8           *      ***   +                    CHIPCON CC1010 EXAMPLE PROGRAM            *
+   9           *      ***   + +   ***                 HAL RF test program                  *
+  10           *      ***   +++   ***                                                      *
+  11           *      ***       ***                                                        *
+  12           *       ***********                                                         *
+  13           *        *********                                                          *
+  14           *                                                                           *
+  15           *****************************************************************************
+  16           * This program demonstrates the use of the HAL RF functions.                *
+  17           *                                                                           *
+  18           * Use the CC1010EB switches (1-4) to transmit a standard packet.            *
+  19           *                                                                           *
+  20           * CC1010EB LEDs:                                                            *
+  21           *   Blue:   Transmitting                                                    *
+  22           *   Yellow: Receiving                                                       *
+  23           *   Red:    Transmission/reception failed                                   *
+  24           *   Green:  Transmission/reception OK                                       *
+  25           *****************************************************************************
+  26           * Author:              JOL                                                  *
+  27           *****************************************************************************
+  28           * Revision history:                                                         *
+  29           * 1.0  2002/08/29      First Public Release                                 *
+  30           * 1.1  2002/09/13      Added 433, 868 and 915 MHz versions                  *
+  31           *                                                                           *
+  32           * $Log: halRFtest.c,v $
+  33           * Revision 1.4  2003/08/18 12:08:44  tos
+  34           * Synchronisation with library update (reentry issue).
+  35           *
+  36           * Revision 1.3  2003/05/12 11:01:31  tos
+  37           * Increased preamble to support higher datarates.
+  38           *
+  39           * Revision 1.2  2002/11/19 14:36:51  kht
+  40           * Added startup macros
+  41           *
+  42           * Revision 1.1  2002/10/14 10:53:19  tos
+  43           * Initial version in CVS.
+  44           *
+  45           *                                                                           *
+  46           ****************************************************************************/
+  47          #include <chipcon/reg1010.h>
+  48          #include <chipcon/cc1010eb.h>
+  49          #include <chipcon/hal.h>
+  50          
+  51          // Protocol constants
+  52          
+  53          #define PREAMBLE_BYTE_COUNT 7
+  54          #define PREAMBLE_BITS_SENSE 16
+C51 COMPILER V7.00  HALRFTEST                                                              08/21/2006 14:40:23 PAGE 2   
+
+  55          
+  56          // Test packet
+  57          #define TEST_STRING_LENGTH 10
+  58          #define ACK_LENGTH 1
+  59          #define ACK_BYTE 0x42
+  60          
+  61          byte testString[TEST_STRING_LENGTH];
+  62          byte ackString[ACK_LENGTH];
+  63          byte receivedString[TEST_STRING_LENGTH];
+  64          
+  65          
+  66          /*****************************************************************************
+  67              MAIN PROGRAM
+  68          *****************************************************************************/
+  69          void main(void) {
+  70   1      
+  71   1          int n;
+  72   1          byte result;
+  73   1      
+  74   1      
+  75   1      #ifdef FREQ868
+  76   1      
+  77   1      // X-tal frequency: 14.745600 MHz
+  78   1      // RF frequency A: 868.277200 MHz       Rx
+  79   1      // RF frequency B: 868.277200 MHz       Tx
+  80   1      // RX Mode: Low side LO
+  81   1      // Frequency separation: 64 kHz
+  82   1      // Data rate: 2.4 kBaud
+  83   1      // Data Format: Manchester
+  84   1      // RF output power: 4 dBm
+  85   1      // IF/RSSI: RSSI Enabled
+  86   1      
+  87   1      RF_RXTXPAIR_SETTINGS code RF_SETTINGS = {
+  88   1          0x4B, 0x2F, 0x15,    // Modem 0, 1 and 2: Manchester, 2.4 kBaud
+  89   1          //0x43, 0x2F, 0x15,    // Modem 0, 1 and 2: NRZ, 2.4 kBaud
+  90   1          //0xA1, 0x2F, 0x29,    // Modem 0, 1 and 2: NRZ, 38.4 kBaud
+  91   1          //0xA0, 0x2F, 0x52,    // Modem 0, 1 and 2: NRZ, 76.8 kBaud
+  92   1          0x75, 0xA0, 0x00,    // Freq A
+  93   1          0x58, 0x32, 0x8D,    // Freq B
+  94   1          0x01, 0xAB,          // FSEP 1 and 0
+  95   1          0x40,                // PLL_RX
+  96   1          0x30,                // PLL_TX
+  97   1          0x6C,                // CURRENT_RX
+  98   1          0xF3,                // CURRENT_TX
+  99   1          0x32,                // FREND
+ 100   1          0xFF,                // PA_POW
+ 101   1          0x00,                // MATCH
+ 102   1          0x00,                // PRESCALER
+ 103   1          };
+ 104   1      
+ 105   1      #endif
+ 106   1      
+ 107   1      #ifdef FREQ915
+              
+              // X-tal frequency: 14.745600 MHz
+              // RF frequency A: 915.027455 MHz       Rx
+              // RF frequency B: 915.027455 MHz       Tx
+              // RX Mode: Low side LO
+              // Frequency separation: 64 kHz
+              // Data rate: 2.4 kBaud
+              // Data Format: Manchester
+              // RF output power: 4 dBm
+C51 COMPILER V7.00  HALRFTEST                                                              08/21/2006 14:40:23 PAGE 3   
+
+              // IF/RSSI: RSSI Enabled
+              
+              RF_RXTXPAIR_SETTINGS code RF_SETTINGS = {
+                  0x4B, 0x2F, 0x15,    // Modem 0, 1 and 2
+                  0xAA, 0x80, 0x00,    // Freq A
+                  0x5C, 0xF4, 0x02,    // Freq B
+                  0x01, 0xAB,          // FSEP 1 and 0
+                  0x58,                // PLL_RX
+                  0x30,                // PLL_TX
+                  0x6C,                // CURRENT_RX
+                  0xF3,                // CURRENT_TX
+                  0x32,                // FREND
+                  0xFF,                // PA_POW
+                  0x00,                // MATCH
+                  0x00,                // PRESCALER
+                  };
+              
+              
+              #endif
+ 136   1      
+ 137   1      #ifdef FREQ433
+              
+              // X-tal frequency: 14.745600 MHz
+              // RF frequency A: 433.302000 MHz       Rx
+              // RF frequency B: 433.302000 MHz       Tx
+              // RX Mode: Low side LO
+              // Frequency separation: 64 kHz
+              // Data rate: 2.4 kBaud
+              // Data Format: Manchester
+              // RF output power: 10 dBm
+              // IF/RSSI: RSSI Enabled
+              
+              RF_RXTXPAIR_SETTINGS code RF_SETTINGS = {
+                  0x4B, 0x2F, 0x0E,    // Modem 0, 1 and 2
+                  0x58, 0x00, 0x00,    // Freq A
+                  0x41, 0xFC, 0x9C,    // Freq B
+                  0x02, 0x80,          // FSEP 1 and 0
+                  0x60,                // PLL_RX
+                  0x48,                // PLL_TX
+                  0x44,                // CURRENT_RX
+                  0x81,                // CURRENT_TX
+                  0x0A,                // FREND
+                  0xFF,                // PA_POW
+                  0xC0,                // MATCH
+                  0x00,                // PRESCALER
+                  };
+              
+              #endif
+ 165   1      
+ 166   1      
+ 167   1          // Calibration data
+ 168   1          RF_RXTXPAIR_CALDATA xdata RF_CALDATA;
+ 169   1      
+ 170   1      
+ 171   1      
+ 172   1      
+ 173   1          // Initialize peripherals
+ 174   1          WDT_ENABLE(FALSE);
+ 175   1          RLED_OE(TRUE);
+ 176   1          YLED_OE(TRUE);
+ 177   1          GLED_OE(TRUE);
+ 178   1          BLED_OE(TRUE);
+C51 COMPILER V7.00  HALRFTEST                                                              08/21/2006 14:40:23 PAGE 4   
+
+ 179   1      
+ 180   1          // Set optimum settings for speed and low power consumption
+ 181   1          MEM_NO_WAIT_STATES();
+ 182   1          FLASH_SET_POWER_MODE(FLASH_STANDBY_BETWEEN_READS);
+ 183   1      
+ 184   1          // Ready for acknowledge
+ 185   1          ackString[0] = ACK_BYTE;
+ 186   1      
+ 187   1          // Calibration
+ 188   1          halRFCalib(&RF_SETTINGS, &RF_CALDATA);
+ 189   1      
+ 190   1          // Turn on RF for RX
+ 191   1          halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA);
+ 192   1      
+ 193   1          while (TRUE) {
+ 194   2              if (SW1_PRESSED || SW2_PRESSED || SW3_PRESSED || SW4_PRESSED) { // TX
+ 195   3                  YLED = LED_OFF;
+ 196   3                  BLED = LED_ON;
+ 197   3      
+ 198   3                  // Build test packet
+ 199   3                  for (n = 0; n < TEST_STRING_LENGTH; n++) { 
+ 200   4                      testString[n] = n;
+ 201   4                  }
+ 202   3      
+ 203   3                  // Turn on RF, send packet
+ 204   3                  halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 205   3                  halRFSendPacket(PREAMBLE_BYTE_COUNT, &testString[0], TEST_STRING_LENGTH);
+ 206   3      
+ 207   3                  // Turn on RF, receive ACK, turn off RF
+ 208   3                  halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA);
+ 209   3                  result = halRFReceivePacket(100/10, &receivedString[0], ACK_LENGTH, 0, CC1010EB_CLKFREQ);
+ 210   3      
+ 211   3                  // Success/failure indicators
+ 212   3                  if ((result == ACK_LENGTH) && (receivedString[0] == ACK_BYTE)) {
+ 213   4                      RLED = LED_OFF;
+ 214   4                      GLED = LED_ON;
+ 215   4                  } else {
+ 216   4                      RLED = LED_ON;
+ 217   4                  }
+ 218   3      
+ 219   3                  // Wait, then turn off LEDs
+ 220   3                  halWait(40, CC1010EB_CLKFREQ);
+ 221   3                  GLED = LED_OFF;
+ 222   3                  RLED = LED_OFF;
+ 223   3      
+ 224   3              } else { // RX
+ 225   3                  YLED = LED_ON;
+ 226   3                  BLED = LED_OFF;
+ 227   3      
+ 228   3                  // Turn on RF, receive test string packet, turn off RF
+ 229   3                  result = halRFReceivePacket(500/10, &receivedString[0], TEST_STRING_LENGTH, 0, CC1010EB_CLKFRE
+             -Q);
+ 230   3      
+ 231   3                  // Success/failure indicators
+ 232   3                  if (result == TEST_STRING_LENGTH) {
+ 233   4                      GLED = LED_ON;
+ 234   4                      halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 235   4                      halRFSendPacket(PREAMBLE_BYTE_COUNT, &ackString[0], ACK_LENGTH);
+ 236   4                      halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA); // Back to RX
+ 237   4                  };
+ 238   3      
+ 239   3                  // Wait, then turn off LEDs
+C51 COMPILER V7.00  HALRFTEST                                                              08/21/2006 14:40:23 PAGE 5   
+
+ 240   3                  halWait(10, CC1010EB_CLKFREQ);
+ 241   3                  GLED = LED_OFF;
+ 242   3                  RLED = LED_OFF;
+ 243   3              }
+ 244   2          }
+ 245   1      } // end of main()
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    301    ----
+   CONSTANT SIZE    =     19    ----
+   XDATA SIZE       =   ----       3
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     21       1
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

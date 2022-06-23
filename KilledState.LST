@@ -1,0 +1,39 @@
+C51 COMPILER V7.00  KILLEDSTATE                                                            03/03/2007 21:12:43 PAGE 1   
+
+
+C51 COMPILER V7.00, COMPILATION OF MODULE KILLEDSTATE
+OBJECT MODULE PLACED IN KilledState.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE KilledState.c LARGE BROWSE OMF251 DEBUG
+
+stmt level    source
+
+   1          #include "EPC_STATE.h"
+   2          
+   3          void KilledStateFunction(){
+   4   1              TurnOffAllLed();
+   5   1      
+   6   1              WriteTagData2Flash();
+   7   1              halRFSetRxTxOff(RF_OFF, &RF_SETTINGS, &RF_CALDATA);
+   8   1              while(1){       
+   9   2                      TurnOffAllLed();
+  10   2                      ENTER_SLEEP_MODE();
+  11   2              }       
+  12   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     35    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

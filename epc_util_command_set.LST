@@ -1,0 +1,459 @@
+C51 COMPILER V7.00  EPC_UTIL_COMMAND_SET                                                   08/29/2006 12:53:01 PAGE 1   
+
+
+C51 COMPILER V7.00, COMPILATION OF MODULE EPC_UTIL_COMMAND_SET
+OBJECT MODULE PLACED IN epc_util_command_set.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE epc_util_command_set.c LARGE BROWSE OMF251 DEBUG
+
+stmt level    source
+
+   1          #include "epc_util_command_set.h"
+   2          
+   3          xdata byte buffer[100];
+   4          xdata MySelect select;
+   5          xdata MyQuery query;
+   6          xdata MyQueryRep queryRep;
+   7          xdata MyACK ack;
+   8          xdata MyReq_RN reqRn;
+   9          xdata MyKill kill;
+  10          xdata MyRead read;
+  11          xdata MyWrite write;
+  12          
+  13          typedef struct{
+  14                  unsigned char header;
+  15                  unsigned short slot;
+  16          }QUERY_SLOT_RESPONSE;
+  17          
+  18          typedef struct{
+  19                  unsigned char header;
+  20                  unsigned char epc_data[12];
+  21          }QUERY_TAG_DATA_RESPONSE;
+  22          
+  23          QUERY_SLOT_RESPONSE query_slot_response;
+  24          QUERY_TAG_DATA_RESPONSE query_tag_data_response;
+  25          
+  26          void init_command(){
+  27   1              select.cmd_sel=SELECT_HEADER;
+  28   1              select.target=0x00;
+  29   1              select.action=0x00;
+  30   1              select.MenBank=EPC_MEM_BANK;
+  31   1              select.EBV=0x00;
+  32   1              //select.Length=0x08;//by byte 
+  33   1              select.Mask[0]=0xffff;
+  34   1              select.Mask[1]=0xffff;
+  35   1              select.Mask[2]=0xffff;
+  36   1              select.Mask[3]=0xffff;  
+  37   1              select.Truncate=0x00;
+  38   1      
+  39   1              query.cmd_query=QUERY_HEADER;
+  40   1              query.DR=0x00;
+  41   1              query.M=0x00;
+  42   1              query.TRext=0x00;
+  43   1              query.sel=0x00;
+  44   1              query.session_query=0x00;
+  45   1              query.tgt=0x00;
+  46   1              query.Q=5;
+  47   1      
+  48   1              queryRep.cmd_QR=QUERY_REP_HEADER;
+  49   1              queryRep.seesion_QR=0x00;
+  50   1      
+  51   1              ack.cmd_ACK=ACK_HEADER;
+  52   1      
+  53   1              reqRn.cmd_Req_RN=REQ_RN_HEADER;
+  54   1      
+  55   1              kill.cmd_Kill=KILL_HEADER;
+C51 COMPILER V7.00  EPC_UTIL_COMMAND_SET                                                   08/29/2006 12:53:01 PAGE 2   
+
+  56   1              kill.RFU_Kill=0x00;
+  57   1              
+  58   1              read.cmd_Read=READ_HEADER;
+  59   1              //read.MenBank_Read=USER_MEM_BANK;
+  60   1              read.WordPtr=0x00;
+  61   1              //read.WordCount=2;
+  62   1              //read.RN_Read=0xABCD;
+  63   1              //read.CRC16_Read=0x0000;
+  64   1      
+  65   1              write.cmd_Write=WRITE_HEADER;
+  66   1              //write.ManBank_Write=USER_MEM_BANK;
+  67   1              //write.WordPtr_Write=0x00;
+  68   1              //write.Data_Write=0xAACC;
+  69   1              //write.RN_Write=0xABCD;
+  70   1      }
+  71          void deSelect(){
+  72   1              unsigned short temp_short;
+  73   1      
+  74   1              select.MenBank=EPC_MEM_BANK;    
+  75   1              select.Length=0x04;
+  76   1      
+  77   1              select.Mask[0]=0xffff;
+  78   1              select.Mask[1]=0xffff;
+  79   1              select.Mask[2]=0xffff;
+  80   1              select.Mask[3]=0xffff;
+  81   1      
+  82   1              temp_short=culSmallCRC16Block((byte*)&select,15,CRC16_INIT);
+  83   1              select.CRC16_select=temp_short;
+  84   1      
+  85   1              halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+  86   1              halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&select,17);
+  87   1      }
+  88          void select_by_mask(unsigned char bank,unsigned short*mask,unsigned char maskLen,unsigned char Q){//until 
+             -scan all slotcounter
+  89   1              unsigned short temp_short;
+  90   1              unsigned short i;       
+  91   1              unsigned char temp_byte;
+  92   1      
+  93   1              select.MenBank=bank;    
+  94   1              select.Length=maskLen;
+  95   1      
+  96   1              select.Mask[0]=*mask;mask++;
+  97   1              select.Mask[1]=*mask;mask++;
+  98   1              select.Mask[2]=*mask;mask++;
+  99   1              select.Mask[3]=*mask;
+ 100   1      
+ 101   1              temp_short=culSmallCRC16Block((byte*)&select,15,CRC16_INIT);
+ 102   1              select.CRC16_select=temp_short;
+ 103   1      
+ 104   1              halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 105   1              halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&select,17);
+ 106   1      
+ 107   1              halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 108   1              halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&select,17);
+ 109   1      
+ 110   1              halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 111   1              halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&select,17);
+ 112   1      
+ 113   1              query.Q=Q;
+ 114   1              temp_short=culSmallCRC16Block((byte*)&query,8,CRC16_INIT);
+ 115   1              query.CRC16_query=temp_short;
+ 116   1              halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&query,10);
+C51 COMPILER V7.00  EPC_UTIL_COMMAND_SET                                                   08/29/2006 12:53:01 PAGE 3   
+
+ 117   1      
+ 118   1              temp_short=1;
+ 119   1              temp_short<<=Q;
+ 120   1      
+ 121   1              for(i=0;i<temp_short;i++){
+ 122   2      
+ 123   2                      halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 124   2                      halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&queryRep,2);
+ 125   2      
+ 126   2      RFCON=0x0E;             
+ 127   2                      halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA);
+ 128   2                      temp_byte=halRFReceivePacket(7,&buffer,5,0,CC1010EB_CLKFREQ) ;
+ 129   2      if(RFCON&0x10){
+ 130   3              halWait(25,CC1010EB_CLKFREQ);
+ 131   3              query_slot_response.header=0xFA;
+ 132   3              query_slot_response.slot=i;
+ 133   3              send_data_frame((unsigned char*)&query_slot_response,1);        
+ 134   3      }
+ 135   2                      if(temp_byte>0){
+ 136   3                              ack.RN_ACK=*((unsigned short*)buffer);
+ 137   3                              halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 138   3                              halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&ack,3);
+ 139   3      
+ 140   3                              halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA);
+ 141   3                              temp_byte=halRFReceivePacket(10,query_tag_data_response.epc_data,100,0,CC1010EB_CLKFREQ) ;//receive epc
+ 142   3      
+ 143   3                              query_tag_data_response.header=0x0B;
+ 144   3                              send_data_frame((unsigned char*)&query_tag_data_response,13);
+ 145   3                              query_tag_data_response.header=0x00;
+ 146   3                      }else{
+ 147   3                              query_slot_response.header=0x0A;
+ 148   3                              query_slot_response.slot=i;
+ 149   3                              send_data_frame((unsigned char*)&query_slot_response,3);
+ 150   3                      }
+ 151   2              }
+ 152   1      
+ 153   1      halWait(25,CC1010EB_CLKFREQ);
+ 154   1      
+ 155   1              query_slot_response.header=0xCA;
+ 156   1              send_data_frame((unsigned char*)&query_slot_response,1);
+ 157   1      halWait(25,CC1010EB_CLKFREQ);
+ 158   1      
+ 159   1              query_slot_response.header=0xCA;
+ 160   1              send_data_frame((unsigned char*)&query_slot_response,1);
+ 161   1      halWait(25,CC1010EB_CLKFREQ);
+ 162   1      
+ 163   1              query_slot_response.header=0xCA;
+ 164   1              send_data_frame((unsigned char*)&query_slot_response,1);
+ 165   1      }
+ 166          void kill_tag(unsigned short* epc_data_4_word,unsigned short* pwd){
+ 167   1              unsigned short handler;
+ 168   1              unsigned short i;
+ 169   1              unsigned short GetFromTag;
+ 170   1              handler=select_single_tag(epc_data_4_word,1);
+ 171   1              if(handler==0x00){
+ 172   2              RLED=LED_ON;
+ 173   2              return;//fail!
+ 174   2              }
+ 175   1      
+ 176   1              halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 177   1              reqRn.RN_Req_RN=handler;
+ 178   1              halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&reqRn,3);
+C51 COMPILER V7.00  EPC_UTIL_COMMAND_SET                                                   08/29/2006 12:53:01 PAGE 4   
+
+ 179   1              
+ 180   1              halWait(5,CC1010EB_CLKFREQ);
+ 181   1      
+ 182   1              halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 183   1              halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&reqRn,5);
+ 184   1              halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA);
+ 185   1              for(i=1;i<3;i++){
+ 186   2                      GetFromTag=halRFReceivePacket(10,&buffer,25,0,CC1010EB_CLKFREQ) ;
+ 187   2                      if(GetFromTag>0)break;
+ 188   2              }
+ 189   1              halWait(10,CC1010EB_CLKFREQ);
+ 190   1      
+ 191   1              kill.RN_Kill=handler;
+ 192   1              kill.pwd_Kill=*pwd;pwd++;
+ 193   1              halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 194   1              halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&kill,8);
+ 195   1              halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA);
+ 196   1              
+ 197   1              for(i=1;i<3;i++){
+ 198   2                      GetFromTag=halRFReceivePacket(10,&buffer,25,0,CC1010EB_CLKFREQ) ;
+ 199   2                      if(GetFromTag>0)break;
+ 200   2              }
+ 201   1              halWait(10,CC1010EB_CLKFREQ);
+ 202   1              
+ 203   1      
+ 204   1              halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 205   1              halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&reqRn,5);
+ 206   1              halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA);
+ 207   1              for(i=1;i<3;i++){
+ 208   2                      GetFromTag=halRFReceivePacket(10,&buffer,25,0,CC1010EB_CLKFREQ) ;
+ 209   2                      if(GetFromTag>0)break;
+ 210   2              }
+ 211   1              halWait(10,CC1010EB_CLKFREQ);
+ 212   1      
+ 213   1              kill.pwd_Kill=*pwd;
+ 214   1              halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 215   1              halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&kill,8);
+ 216   1              halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA);
+ 217   1              
+ 218   1              for(i=1;i<3;i++){
+ 219   2                      GetFromTag=halRFReceivePacket(10,&buffer,25,0,CC1010EB_CLKFREQ) ;
+ 220   2                      if(GetFromTag>0)break;
+ 221   2              }
+ 222   1      }
+ 223          //select_single_tag will return handler
+ 224          unsigned short select_single_tag(unsigned short* epc_data_4_word,unsigned char Q){//set tag to open or sec
+             -ured
+ 225   1              unsigned short temp_short;
+ 226   1              unsigned short *short_pointer;
+ 227   1              unsigned short i;
+ 228   1              unsigned char temp_byte;
+ 229   1              unsigned char compare_count;
+ 230   1              unsigned short* epc_data_4_word_backup=epc_data_4_word;
+ 231   1      
+ 232   1              //init_command();
+ 233   1      select.cmd_sel=0xDD;
+ 234   1      
+ 235   1              select.MenBank=EPC_MEM_BANK;    
+ 236   1              select.Length=0x08;
+ 237   1              select.Mask[0]=*epc_data_4_word;
+ 238   1              epc_data_4_word++;
+ 239   1              select.Mask[1]=*epc_data_4_word;
+C51 COMPILER V7.00  EPC_UTIL_COMMAND_SET                                                   08/29/2006 12:53:01 PAGE 5   
+
+ 240   1              epc_data_4_word++;
+ 241   1              select.Mask[2]=*epc_data_4_word;
+ 242   1              epc_data_4_word++;
+ 243   1              select.Mask[3]=*epc_data_4_word;
+ 244   1              
+ 245   1              temp_short=culSmallCRC16Block((byte*)&select,15,CRC16_INIT);
+ 246   1              select.CRC16_select=temp_short;
+ 247   1      
+ 248   1              
+ 249   1              for(i=0;i<7;i++){
+ 250   2                      halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 251   2                      halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&select,17);
+ 252   2              }
+ 253   1      
+ 254   1      select.cmd_sel=SELECT_HEADER;
+ 255   1      
+ 256   1      
+ 257   1              
+ 258   1      
+ 259   1      
+ 260   1              query.Q=Q;
+ 261   1              temp_short=culSmallCRC16Block((byte*)&query,8,CRC16_INIT);
+ 262   1              query.CRC16_query=temp_short;
+ 263   1              halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&query,10);
+ 264   1      
+ 265   1              temp_short=1;
+ 266   1              temp_short<<=Q;
+ 267   1              for(i=0;i<temp_short;i++){
+ 268   2                      halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 269   2                      halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&queryRep,2);
+ 270   2                      
+ 271   2                      halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA);
+ 272   2                      temp_byte=halRFReceivePacket(7,&buffer,5,0,CC1010EB_CLKFREQ);
+ 273   2      
+ 274   2                      if(temp_byte>0){
+ 275   3                              ack.RN_ACK=*((unsigned short*)buffer);
+ 276   3                              halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 277   3                              halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&ack,3);
+ 278   3                      
+ 279   3                              halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA);
+ 280   3                              temp_byte=halRFReceivePacket(10,&buffer,100,0,CC1010EB_CLKFREQ) ;//receive epc
+ 281   3                              if(temp_byte==0){
+ 282   4                                      continue;
+ 283   4                              }
+ 284   3                              
+ 285   3                              compare_count=0;
+ 286   3                              short_pointer=(unsigned short*)&buffer;
+ 287   3                              short_pointer+=2;
+ 288   3                              for(i=0;i<4;i++){
+ 289   4                                      if(epc_data_4_word_backup[i]==short_pointer[i]){
+ 290   5                                              compare_count++;
+ 291   5                                      }
+ 292   4                              }
+ 293   3                              if(compare_count==4){
+ 294   4                                      break;
+ 295   4                              }
+ 296   3                      }
+ 297   2              }
+ 298   1      
+ 299   1              if(temp_byte==0){
+ 300   2              return 0x00;//fail!
+ 301   2              }
+C51 COMPILER V7.00  EPC_UTIL_COMMAND_SET                                                   08/29/2006 12:53:01 PAGE 6   
+
+ 302   1      
+ 303   1      
+ 304   1              
+ 305   1              halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 306   1              reqRn.RN_Req_RN=ack.RN_ACK;
+ 307   1              halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&reqRn,3);
+ 308   1      
+ 309   1              halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA);
+ 310   1              temp_byte=halRFReceivePacket(7,(byte*)&temp_short,10,0,CC1010EB_CLKFREQ) ;//receive handler
+ 311   1      
+ 312   1              if(i==temp_byte)return 0x00;//fail!
+ 313   1      
+ 314   1              return temp_short;
+ 315   1      }
+ 316          
+ 317          //len in word(2 byte), return receive bytes count
+ 318          unsigned char get_data_by_epc(unsigned short* epc_data_4_word,unsigned char bank,unsigned char* output,uns
+             -igned char len){
+ 319   1              unsigned short handler=0;
+ 320   1              unsigned char receiveCount=0;
+ 321   1              unsigned char test=0;
+ 322   1      
+ 323   1                      handler=select_single_tag(epc_data_4_word,1);
+ 324   1      
+ 325   1              if(handler==0){
+ 326   2                      return 0;
+ 327   2              }
+ 328   1                      read.MenBank_Read=bank;
+ 329   1                      read.WordCount=len;
+ 330   1                      read.RN_Read=handler;
+ 331   1      
+ 332   1      
+ 333   1              test=3;
+ 334   1      
+ 335   1              while(test-- && receiveCount==0){
+ 336   2                      halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 337   2                      halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&read,8);
+ 338   2                      
+ 339   2                      halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA);
+ 340   2                      receiveCount=halRFReceivePacket(10,output,len*2,0,CC1010EB_CLKFREQ);
+ 341   2              }
+ 342   1      
+ 343   1              return receiveCount;
+ 344   1      }
+ 345          
+ 346          //len in word(2 byte), return write count ,return 0 if fail.
+ 347          unsigned char put_data_by_epc(unsigned short* epc_data_4_word,unsigned char bank,unsigned char* input,unsi
+             -gned char offset,unsigned char len){
+ 348   1              unsigned short temp;
+ 349   1              unsigned short* word_pointer;
+ 350   1              unsigned char i;
+ 351   1      
+ 352   1              temp=select_single_tag(epc_data_4_word,1);
+ 353   1              word_pointer=(unsigned short*)input;
+ 354   1      
+ 355   1              write.ManBank_Write=bank;
+ 356   1              write.RN_Write=temp;
+ 357   1      
+ 358   1              for(i=0;i<len;i++){
+ 359   2                      write.WordPtr_Write=i+offset;
+ 360   2                      write.Data_Write=*word_pointer;
+ 361   2                      word_pointer++;
+C51 COMPILER V7.00  EPC_UTIL_COMMAND_SET                                                   08/29/2006 12:53:01 PAGE 7   
+
+ 362   2      
+ 363   2                      halRFSetRxTxOff(RF_TX, &RF_SETTINGS, &RF_CALDATA);
+ 364   2                      halRFSendPacket(PREAMBLE_BYTE_COUNT,(byte*)&write,9);
+ 365   2                      
+ 366   2                      halRFSetRxTxOff(RF_RX, &RF_SETTINGS, &RF_CALDATA);
+ 367   2                      temp=halRFReceivePacket(10,&buffer,25,0,CC1010EB_CLKFREQ);
+ 368   2                      if(temp==0)return 0;
+ 369   2      
+ 370   2                      halWait(10,CC1010EB_CLKFREQ);
+ 371   2              }
+ 372   1      
+ 373   1              return len;
+ 374   1      }
+ 375          
+ 376          void send_rs232_sync_bytes(){
+ 377   1              unsigned char i;
+ 378   1              for(i=0;i<10;i++){
+ 379   2      #ifdef UART0
+                              UART0_WAIT_AND_SEND(0xAA);
+              #else
+ 382   2                      UART1_WAIT_AND_SEND(0xAA);
+ 383   2      #endif
+ 384   2              }
+ 385   1      #ifdef UART0
+                              UART0_WAIT_AND_SEND(0xCC);
+              #else
+ 388   1                      UART1_WAIT_AND_SEND(0xCC);
+ 389   1      #endif
+ 390   1      }
+ 391          void send_rs232_finish_bytes(){
+ 392   1              unsigned char i;
+ 393   1              for(i=0;i<10;i++){
+ 394   2      #ifdef UART0
+                              UART0_WAIT_AND_SEND(0xAA);
+              #else
+ 397   2                      UART1_WAIT_AND_SEND(0xAA);
+ 398   2      #endif
+ 399   2              }       
+ 400   1      }
+ 401          void send_data_frame(unsigned char* data_pointer,unsigned char len){
+ 402   1              unsigned char i;
+ 403   1              send_rs232_sync_bytes();
+ 404   1              
+ 405   1              for(i=0;i<len;i++){
+ 406   2      #ifdef UART0
+                              UART0_WAIT_AND_SEND(*data_pointer);
+              #else
+ 409   2                      UART1_WAIT_AND_SEND(*data_pointer);
+ 410   2      #endif
+ 411   2                      data_pointer++;
+ 412   2              }
+ 413   1              send_rs232_finish_bytes();
+ 414   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2946    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    178      64
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+C51 COMPILER V7.00  EPC_UTIL_COMMAND_SET                                                   08/29/2006 12:53:01 PAGE 8   
+
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

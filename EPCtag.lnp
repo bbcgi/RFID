@@ -1,0 +1,14 @@
+"ReadyState.obj",
+"ArbitrateState.obj",
+"ReplyState.obj",
+"AcknowledgedState.obj",
+"OpenState.obj",
+"SecuredState.obj",
+"KilledState.obj",
+"main.obj",
+"C:\Keil\C51\LIB\Chipcon\halLib_large.LIB",
+"C:\Keil\C51\LIB\Chipcon\culLib_large.LIB" 
+TO "EPCtag" 
+
+DISABLEWARNING (13) 
+RECURSIONS (255) 
